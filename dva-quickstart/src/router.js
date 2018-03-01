@@ -11,7 +11,7 @@ function RouterConfig({ history }) {
         <Route path="/products" exact component={Products} />
       </Switch>
     </Router>
-    
+
   );
 }
 
