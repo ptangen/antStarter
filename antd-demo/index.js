@@ -1,34 +1,77 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { LocaleProvider, DatePicker, message } from 'antd';
-// The default locale is en-US, but we can change it to other language
-//import frFR from 'antd/lib/locale-provider/fr_FR';
-import moment from 'moment';
-//import 'moment/locale/fr';
 
-//moment.locale('fr');
+import { Form, Icon, Input, Button } from 'antd';
+const FormItem = Form.Item;
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      date: '',
-    };
+function hasErrors(fieldsError) {
+  return Object.keys(fieldsError).some(field => fieldsError[field]);
+}
+
+class HorizontalLoginForm extends React.Component {
+
+  componentDidMount() {
+    // To disabled submit button at the beginning.
+    this.props.form.validateFields();
   }
-  handleChange(date) {
-    message.info('Selected Date: ' + date.toString());
-    this.setState({ date });
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    this.props.form.validateFields((err, values) => {
+      if (!err) {
+        console.log('Received values of form: ', values);
+      } 
+      // print error message to console
+      console.log('Output: ' , values , err)
+      err.userName ? console.log('userName error: ' , err.userName.errors[0].message) : '';
+      err.password ? console.log('password error: ' , err.password.errors[0].message) : '';
+    });
   }
+
   render() {
+    const { getFieldDecorator, getFieldsError, getFieldError, isFieldTouched } = this.props.form;
+
+    // Only show error after a field is touched.
+    const userNameError = isFieldTouched('userName') && getFieldError('userName');
+    const passwordError = isFieldTouched('password') && getFieldError('password');
+
     return (
-      <LocaleProvider>
-        <div style={{ width: 400, margin: '100px auto' }}>
-          <DatePicker onChange={value => this.handleChange(value)} />
-          <div style={{ marginTop: 20 }}>Date: {this.state.date.toString()}</div>
-        </div>
-      </LocaleProvider>
+      <Form layout="inline" onSubmit={this.handleSubmit}>
+        <FormItem>
+          {getFieldDecorator('formName', {initialValue: "ffff"})(
+            <Input type="hidden" />
+          )}
+        </FormItem>
+        <FormItem
+          validateStatus={userNameError ? 'error' : ''}
+          help={userNameError || ''}
+        >
+          {getFieldDecorator('userName', {rules: [{ required: true, message: 'Please input your username!' }]})(
+            <Input prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />} placeholder="Username" />
+          )}
+        </FormItem>
+        <FormItem
+          validateStatus={passwordError ? 'error' : ''}
+          help={passwordError || ''}
+        >
+          {getFieldDecorator('password', {rules: [{ required: true, message: 'Please input your password!' }]})(
+            <Input prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />} type="password" placeholder="Password" />
+          )}
+        </FormItem>
+        <FormItem>
+          <Button
+            type="primary"
+            htmlType="submit"
+            disabled={hasErrors(getFieldsError())}
+          >
+            Log in
+          </Button>
+        </FormItem>
+      </Form>
     );
   }
 }
 
-ReactDOM.render(<App />, document.getElementById('root'));
+const WrappedHorizontalLoginForm = Form.create()(HorizontalLoginForm);
+
+ReactDOM.render(<WrappedHorizontalLoginForm />, document.getElementById('root'));
